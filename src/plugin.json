@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "kuma-datasource",
+  "id": "kumahq-kuma-datasource",
+  "metrics": true,
+  "backend": true,
+  "executable": "gpx_kuma-datasource",
+  "info": {
+    "description": "A datasource plugin for kuma",
+    "author": {
+      "name": "Charly Molter",
+      "url": ""
+    },
+    "keywords": [
+      "kuma"
+    ],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [
+      {
+        "name": "Website",
+        "url": "https://github.com/kumahq/kuma-grafana-datasource"
+      },
+      {
+        "name": "License",
+        "url": "https://github.com/kumahq/kuma-grafana-datasource/blob/master/LICENSE"
+      }
+    ],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=7.0.0",
+    "plugins": []
+  }
+}
