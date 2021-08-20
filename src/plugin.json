@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
   "type": "datasource",
-  "name": "kuma-datasource",
+  "name": "Kuma",
   "id": "kumahq-kuma-datasource",
   "metrics": true,
   "backend": true,
@@ -10,7 +10,7 @@
     "description": "A datasource plugin for kuma",
     "author": {
       "name": "Charly Molter",
-      "url": ""
+      "url": "https://kuma.io"
     },
     "keywords": [
       "kuma"
@@ -34,7 +34,7 @@
     "updated": "%TODAY%"
   },
   "dependencies": {
-    "grafanaDependency": ">=7.0.0",
+    "grafanaDependency": ">=8.0.0",
     "plugins": []
   }
 }

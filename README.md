@@ -3,69 +3,49 @@ A grafana datasource plugin for Kuma
 
 [![Build](https://github.com/grafana/grafana-starter-datasource-backend/workflows/CI/badge.svg)](https://github.com/grafana/grafana-datasource-backend/actions?query=workflow%3A%22CI%22)
 
-This template is a starting point for building Grafana Data Source Backend Plugins
+This datasource will enable you to do some queries to inspect Kuma.
+It also has a `mesh-graph` query type which will render a [NodeGraph panel](https://grafana.com/docs/grafana/latest/panels/visualizations/node-graph/) similar to what [Kiali](https://kiali.io) provides.
 
-## What is Grafana Data Source Backend Plugin?
+## How to install
 
-Grafana supports a wide range of data sources, including Prometheus, MySQL, and even Datadog. There’s a good chance you can already visualize metrics from the systems you have set up. In some cases, though, you already have an in-house metrics solution that you’d like to add to your Grafana dashboards. Grafana Data Source Plugins enables integrating such solutions with Grafana.
+TODO
 
-For more information about backend plugins, refer to the documentation on [Backend plugins](https://grafana.com/docs/grafana/latest/developers/plugins/backend/).
+## How to configure
 
-## Getting started
+It's as easy as any datasource, you can follow the instructions on the [Grafana docs](https://grafana.com/docs/grafana/latest/datasources/add-a-data-source/).
+
+The configuration for the datasource will look like:
+
+![Kuma datasource configuration](./img/configuration.png)
+
+You'll have to set the url to your global control plane api and pick an already configured prometheus datasource in the dropdown.
+
+Once this is done you can go in `explore` and pick the kuma-datasource with the `mesh-graph` query type:
+
+![Mesh graph example](./img/mesh-graph.png)
+
+## Future features
+
+- Add links for logs and traces.
+- Add possibility to filter services.
+- Add query type for services.
+
+File an issue if you want something :).
+
+## Development
 
 A data source backend plugin consists of both frontend and backend components.
 
-### Frontend
+The easiest way to develop is using the grafana docker image:
 
-1. Install dependencies
+You can start it:
 
-   ```bash
-   yarn install
-   ```
+```
+docker run  -p 3000:3000 -d  -e GF_DEFAULT_APP_MODE=development -v /Users/cmolter/code/kuma-datasource/dist:/var/lib/grafana/plugins --name=grafana grafana/grafana:8.0.0
+```
 
-2. Build plugin in development mode or run in watch mode
+then rebuild with:
 
-   ```bash
-   yarn dev
-   ```
-
-   or
-
-   ```bash
-   yarn watch
-   ```
-
-3. Build plugin in production mode
-
-   ```bash
-   yarn build
-   ```
-
-### Backend
-
-1. Update [Grafana plugin SDK for Go](https://grafana.com/docs/grafana/latest/developers/plugins/backend/grafana-plugin-sdk-for-go/) dependency to the latest minor version:
-
-   ```bash
-   go get -u github.com/grafana/grafana-plugin-sdk-go
-   go mod tidy
-   ```
-
-2. Build backend plugin binaries for Linux, Windows and Darwin:
-
-   ```bash
-   mage -v
-   ```
-
-3. List all available Mage targets for additional commands:
-
-   ```bash
-   mage -l
-   ```
-
-## Learn more
-
-- [Build a data source backend plugin tutorial](https://grafana.com/tutorials/build-a-data-source-backend-plugin)
-- [Grafana documentation](https://grafana.com/docs/)
-- [Grafana Tutorials](https://grafana.com/tutorials/) - Grafana Tutorials are step-by-step guides that help you make the most of Grafana
-- [Grafana UI Library](https://developers.grafana.com/ui) - UI components to help you build interfaces using Grafana Design System
-- [Grafana plugin SDK for Go](https://grafana.com/docs/grafana/latest/developers/plugins/backend/grafana-plugin-sdk-for-go/)
+```
+mage -v && yarn dev && docker restart grafana && docker logs grafana -f
+```

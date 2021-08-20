@@ -11,7 +11,7 @@ interface Props extends DataSourcePluginOptionsEditorProps<KumaDataSourceOptions
 export function ConfigEditor(props: Props) {
   const { options } = props;
 
-  const all = getDataSourceSrv().getList({ type: 'prometheus'});
+  const all = getDataSourceSrv().getList({ type: 'prometheus' });
   console.log('ds', all);
   const allDatasources = [];
   let curDatasource;
