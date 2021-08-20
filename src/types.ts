@@ -21,6 +21,7 @@ export const defaultQuery: Partial<KumaQuery> = {
  */
 export interface KumaDataSourceOptions extends DataSourceJsonData {
   url?: string;
+  prometheusDataSourceId?: string;
 }
 
 /**

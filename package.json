@@ -13,11 +13,12 @@
   "author": "Charly Molter",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@grafana/data": "latest",
-    "@grafana/toolkit": "latest",
-    "@grafana/runtime": "latest",
-    "@grafana/ui": "latest",
-    "@types/lodash": "latest"
+    "@grafana/data": "8.1.2",
+    "@grafana/toolkit": "8.1.2",
+    "@grafana/runtime": "8.1.2",
+    "@grafana/ui": "8.1.2",
+    "@types/lodash": "latest",
+    "react-use": "latest"
   },
   "resolutions": {
     "rxjs": "6.6.3"
