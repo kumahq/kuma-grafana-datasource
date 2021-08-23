@@ -49,3 +49,9 @@ then rebuild with:
 ```
 mage -v && yarn dev && docker restart grafana && docker logs grafana -f
 ```
+
+## Releasing
+
+- Change the version in `package.json`.
+- Add a tag and push.
+- The github `release` job should run.
