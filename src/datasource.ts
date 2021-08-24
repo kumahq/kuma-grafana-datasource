@@ -293,7 +293,7 @@ export class DataSource extends DataSourceWithBackend<KumaQuery, KumaDataSourceO
             request.startTime
           ),
           this.sendPromQuery(
-            `sum by (kuma_io_service,envoy_cluster_name) (round(increase(envoy_cluster_upstream_rq_total{${selector}}[${interval}m]))) != 0`,
+            `sum by (kuma_io_service,envoy_cluster_name) (rate(envoy_cluster_upstream_rq_total{${selector}}[${interval}m])) != 0`,
             request.startTime
           ),
           this.sendPromQuery(
