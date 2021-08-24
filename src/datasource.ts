@@ -8,7 +8,7 @@ import {
   LoadingState,
   MutableDataFrame,
 } from '@grafana/data';
-import { DataSourceWithBackend, FetchResponse, getBackendSrv } from '@grafana/runtime';
+import { DataSourceWithBackend, FetchResponse, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { KumaDataSourceOptions, KumaQuery, MeshGraphQType } from './types';
 import { from, Observable } from 'rxjs';
 
@@ -266,17 +266,18 @@ export class DataSource extends DataSourceWithBackend<KumaQuery, KumaDataSourceO
   }
 
   private async meshGraphQuery(request: DataQueryRequest<KumaQuery>): Promise<DataQueryResponse> {
-    const t = request.targets[0];
     let interval = (request.intervalMs - (request.intervalMs % 60000)) / 60000;
     if (interval === 0) {
       interval = 1;
     }
-    let selector = `mesh="${t.mesh}"`;
-    if (t.zone) {
-      selector = `mesh="${t.mesh}",zone="${t.zone}"`;
+    const mesh = getTemplateSrv().replace(request.targets[0].mesh, request.scopedVars);
+    const zone = getTemplateSrv().replace(request.targets[0].zone, request.scopedVars);
+    let selector = `mesh="${mesh}"`;
+    if (zone) {
+      selector = `mesh="${mesh}",zone="${zone}"`;
     }
     try {
-      let stats = await this.postResource('services', { mesh: t.mesh }).then((r) => {
+      let stats = await this.postResource('services', { mesh: mesh }).then((r) => {
         const out = new Stats();
         for (let s of r.services) {
           out.addNode(s);
@@ -284,7 +285,7 @@ export class DataSource extends DataSourceWithBackend<KumaQuery, KumaDataSourceO
         return out;
       });
       await Promise.all([
-        this.postResource('services', { mesh: t.mesh }).then((r) => r.services),
+        this.postResource('services', { mesh: mesh }).then((r) => r.services),
         // Query for edges
         Promise.all([
           this.sendPromQuery(
@@ -351,7 +352,6 @@ export class DataSource extends DataSourceWithBackend<KumaQuery, KumaDataSourceO
 
       const nodeDf = assembleNodeDf(stats);
       const edgeDf = assembleEdgeDf(stats);
-      console.log('got the data', nodeDf, edgeDf);
       return { data: [nodeDf, edgeDf], error: undefined, key: '', state: undefined };
     } catch (e) {
       console.error('failed', e);

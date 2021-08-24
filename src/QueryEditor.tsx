@@ -16,6 +16,7 @@ import {
   queryTypes,
   ZonesQType,
 } from './types';
+import { getTemplateSrv } from '@grafana/runtime';
 
 interface MetadataResponse {
   meshes?: string[];
@@ -74,11 +75,19 @@ export function QueryEditor(props: Props) {
 }
 
 function buildSelect(entries: string[], value: string, cb: (entry: SelectableValue<string>) => void) {
+  const dashVars = getTemplateSrv().getVariables();
   const allOptions = [];
   let cur;
   for (const v of entries) {
     const elt = { label: v, value: v, text: v };
     if (v === value) {
+      cur = elt;
+    }
+    allOptions.push(elt);
+  }
+  for (const v of dashVars) {
+    const elt = { label: `$${v.name}`, value: `$${v.name}`, text: `${v.name}` };
+    if (v.name === value) {
       cur = elt;
     }
     allOptions.push(elt);

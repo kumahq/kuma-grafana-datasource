@@ -12,7 +12,6 @@ export function ConfigEditor(props: Props) {
   const { options } = props;
 
   const all = getDataSourceSrv().getList({ type: 'prometheus' });
-  console.log('ds', all);
   const allDatasources = [];
   let curDatasource;
   for (let v of all || []) {
