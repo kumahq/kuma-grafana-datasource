@@ -29,7 +29,24 @@
         "url": "https://github.com/kumahq/kuma-grafana-datasource/blob/master/LICENSE"
       }
     ],
-    "screenshots": [],
+    "screenshots": [
+      {
+        "name": "configuration",
+        "path": "img/configuration.png"
+      },
+      {
+        "name": "mesh-graph",
+        "path": "img/mesh-graph.png"
+      },
+      {
+        "name": "explore",
+        "path": "img/explore.png"
+      },
+      {
+        "name": "in-dashboard",
+        "path": "img/in-dashboard.png"
+      }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },

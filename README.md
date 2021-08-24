@@ -24,13 +24,13 @@ It's as easy as any datasource, you can follow the instructions on the [Grafana 
 
 The configuration for the datasource will look like:
 
-![Kuma datasource configuration](./img/configuration.png)
+![Kuma datasource configuration](https://github.com/kumahq/kuma-grafana-datasource/raw/master/src/img/configuration.png)
 
 You'll have to set the url to your global control plane api and pick an already configured prometheus datasource in the dropdown.
 
 Once this is done you can go in `explore` and pick the kuma-datasource with the `mesh-graph` query type:
 
-![Mesh graph example](./img/mesh-graph.png)
+![Mesh graph example](https://github.com/kumahq/kuma-grafana-datasource/raw/master/src/img/mesh-graph.png)
 
 ### With provisioner
 
@@ -61,28 +61,3 @@ If you use `kumactl install metrics` with a version of kumactl >= 1.3.0 the plug
 - Support non HTTP services.
 
 File an issue if you want something :).
-
-## Development
-
-A data source backend plugin consists of both frontend and backend components.
-
-The easiest way to develop is using the grafana docker image:
-
-You can start it:
-
-```
-docker run  -p 3000:3000 -d  -e GF_DEFAULT_APP_MODE=development -v /Users/cmolter/code/kuma-datasource/dist:/var/lib/grafana/plugins --name=grafana grafana/grafana:8.0.0
-```
-
-then rebuild with:
-
-```
-mage -v && yarn dev && docker restart grafana && docker logs grafana -f
-```
-
-## Releasing
-
-- Change the version in `package.json`.
-- Update the [CHANGELOG](./CHANGELOG.md).
-- Add a tag and push.
-- The github `release` job should run.
