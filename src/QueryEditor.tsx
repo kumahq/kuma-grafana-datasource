@@ -1,96 +1,72 @@
-import { defaults } from 'lodash';
+import { defaults, map } from 'lodash';
 
 import React from 'react';
-import { Select, Spinner } from '@grafana/ui';
+import { AsyncSelect, InlineField, InlineFieldRow, Select } from '@grafana/ui';
 
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
-import useAsync from 'react-use/lib/useAsync';
 
 import { DataSource } from './datasource';
-import {
-  defaultQuery,
-  KumaDataSourceOptions,
-  KumaQuery,
-  MeshesQType,
-  MeshGraphQType,
-  queryTypes,
-  ZonesQType,
-} from './types';
-import { getTemplateSrv } from '@grafana/runtime';
-
-interface MetadataResponse {
-  meshes?: string[];
-  zones?: string[];
-}
+import { defaultQuery, KumaDataSourceOptions, KumaQuery, MeshGraphQType, queryTypes, ServicesQType } from './types';
 
 type Props = QueryEditorProps<DataSource, KumaQuery, KumaDataSourceOptions>;
 
 export function QueryEditor(props: Props) {
   const query = defaults(props.query, defaultQuery);
   const { mesh, zone, queryType } = query;
-
-  const r = useAsync(async (): Promise<MetadataResponse> => {
-    if (queryType !== MeshGraphQType) {
-      return {};
-    }
-    return props.datasource.postResource('metadata', {});
-  }, [props.datasource]);
-  if (r.error) {
-    // TODO error handling
+  let metaPromise = props.datasource.postResource('metadata');
+  let loadAsyncOptions = (type: 'zones' | 'meshes') => (): Promise<Array<SelectableValue<string>>> => {
+    return new Promise<Array<SelectableValue<string>>>((resolve, reject) => {
+      return metaPromise
+        .then((r) => {
+          resolve(
+            map(r[type], (e) => {
+              return { label: e, value: e, text: e };
+            })
+          );
+        })
+        .catch((reason) => reject(reason));
+    });
+  };
+  let fields = [
+    <InlineField key="queryType" label="query-type" tooltip="The type of query to run">
+      <Select
+        onChange={(entry: SelectableValue<string>) => {
+          props.onChange({ ...query, queryType: entry.value });
+        }}
+        options={map(queryTypes, (e) => {
+          return { label: e, value: e, text: e };
+        })}
+        value={query.queryType}
+      />
+    </InlineField>,
+  ];
+  if (queryType === MeshGraphQType || queryType === ServicesQType) {
+    fields.push(
+      <InlineField key="meshes" label="meshes" tooltip="select the mesh to display">
+        <AsyncSelect
+          loadOptions={loadAsyncOptions('meshes')}
+          defaultOptions
+          value={{ label: mesh, value: mesh, text: mesh }}
+          onChange={(entry: SelectableValue<string>) => {
+            props.onChange({ ...query, mesh: entry.value || '' });
+          }}
+        />
+      </InlineField>
+    );
   }
-  let fields;
   if (queryType === MeshGraphQType) {
-    if (!r.value) {
-      return <Spinner />;
-    } else {
-      fields = (
-        <span>
-          {buildSelect(r.value.meshes || ['default'], mesh, (entry: SelectableValue<string>) => {
-            props.onChange({ ...query, mesh: entry.value || 'default' });
-            props.onRunQuery();
-          })}
-          {buildSelect(r.value.zones || [], zone || '', (entry: SelectableValue<string>) => {
-            props.onChange({ ...query, zone: entry.value });
-            props.onRunQuery();
-          })}
-        </span>
-      );
-    }
-  } else if (queryType === ZonesQType) {
-    fields = <div />;
-  } else if (queryType === MeshesQType) {
-    fields = <div />;
+    fields.push(
+      <InlineField key="zones" label="zones" tooltip="filter the meshGraph by a zone">
+        <AsyncSelect
+          loadOptions={loadAsyncOptions('zones')}
+          defaultOptions
+          value={zone ? { label: zone, value: zone, text: zone } : undefined}
+          onChange={(entry: SelectableValue<string>) => {
+            props.onChange({ ...query, zone: entry.value || '' });
+          }}
+        />
+      </InlineField>
+    );
   }
-  return (
-    <div className="gf-form">
-      {buildSelect(queryTypes, queryType || MeshGraphQType, (entry: SelectableValue<string>) => {
-        props.onChange({ ...query, queryType: entry.value });
-        if (entry.value !== MeshGraphQType) {
-          props.onRunQuery();
-        }
-      })}
-      {fields}
-    </div>
-  );
-}
-
-function buildSelect(entries: string[], value: string, cb: (entry: SelectableValue<string>) => void) {
-  const dashVars = getTemplateSrv().getVariables();
-  const allOptions = [];
-  let cur;
-  for (const v of entries) {
-    const elt = { label: v, value: v, text: v };
-    if (v === value) {
-      cur = elt;
-    }
-    allOptions.push(elt);
-  }
-  for (const v of dashVars) {
-    const elt = { label: `$${v.name}`, value: `$${v.name}`, text: `${v.name}` };
-    if (v.name === value) {
-      cur = elt;
-    }
-    allOptions.push(elt);
-  }
-  return <Select options={allOptions} value={cur} onChange={cb} />;
+  return <InlineFieldRow className="gf-form">{fields}</InlineFieldRow>;
 }

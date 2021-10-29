@@ -1,10 +1,8 @@
 import React, { ChangeEvent } from 'react';
-import { LegacyForms, Select } from '@grafana/ui';
+import { FieldSet, InlineField, Input, Select } from '@grafana/ui';
 import { DataSourcePluginOptionsEditorProps, SelectableValue } from '@grafana/data';
 import { KumaDataSourceOptions } from './types';
 import { getDataSourceSrv } from '@grafana/runtime';
-
-const { FormField } = LegacyForms;
 
 interface Props extends DataSourcePluginOptionsEditorProps<KumaDataSourceOptions> {}
 
@@ -25,20 +23,25 @@ export function ConfigEditor(props: Props) {
     allDatasources.push(elt);
   }
   return (
-    <div className="gf-form">
-      <div className="gf-form-group">
-        <div className="gf-form">
-          <FormField
-            label="Url"
-            labelWidth={6}
-            inputWidth={20}
+    <>
+      <FieldSet label="Dataplane">
+        <InlineField label="Dataplane url" tooltip="The url to your global dataplane api">
+          <Input
             onChange={(event: ChangeEvent<HTMLInputElement>) => {
-              const { onOptionsChange, options } = props;
-              onOptionsChange({ ...options, url: event.target.value });
+              props.onOptionsChange({ ...props.options, url: event.target.value });
             }}
+            css=""
             value={options.url || ''}
             placeholder="url to your service"
+            required={true}
           />
+        </InlineField>
+      </FieldSet>
+      <FieldSet label="Secondary datasource">
+        <InlineField
+          label="Prometheus datasource"
+          tooltip="The prometheus datasource to extract stats from (this datasource will proxy some requests throuhg this datasource)"
+        >
           <Select
             options={allDatasources}
             value={curDatasource}
@@ -47,8 +50,8 @@ export function ConfigEditor(props: Props) {
               onOptionsChange({ ...options, jsonData: { prometheusDataSourceId: entry.value } });
             }}
           />
-        </div>
-      </div>
-    </div>
+        </InlineField>
+      </FieldSet>
+    </>
   );
 }

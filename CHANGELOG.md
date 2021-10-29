@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.4
+
+- Add services query type
+- Improve forms for nicer display
+
 ## 0.0.3
 
 - Correct query bug in rate for edge stats
