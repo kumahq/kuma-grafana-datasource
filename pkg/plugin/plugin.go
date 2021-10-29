@@ -97,7 +97,7 @@ func (d *KumaDatasource) query(ctx context.Context, pCtx backend.PluginContext, 
 	}
 	switch qm.QueryType {
 	case ServicesQueryType:
-		r, err := d.kongMeshClient.GetServiceInsights(ctx)
+		r, err := d.kongMeshClient.GetServiceInsights(ctx, qm.Mesh)
 		if err != nil {
 			return backend.DataResponse{Error: err}
 		}
@@ -111,9 +111,7 @@ func (d *KumaDatasource) query(ctx context.Context, pCtx backend.PluginContext, 
 			data.NewField("total", nil, []uint32{}).SetConfig(&data.FieldConfig{DisplayName: "Total"}),
 		)
 		for _, srv := range r {
-			if srv.Mesh == qm.Mesh {
-				services.AppendRow(srv.Name, srv.Status, uint32(srv.Dataplanes.Online), uint32(srv.Dataplanes.Offline), uint32(srv.Dataplanes.Total))
-			}
+			services.AppendRow(srv.Name, srv.Status, uint32(srv.Dataplanes.Online), uint32(srv.Dataplanes.Offline), uint32(srv.Dataplanes.Total))
 		}
 		return backend.DataResponse{Frames: data.Frames{services}}
 	case MeshesQueryType:
@@ -205,15 +203,13 @@ func (d *KumaDatasource) CallResource(ctx context.Context, req *backend.CallReso
 		if err != nil {
 			return sender.Send(&backend.CallResourceResponse{Status: http.StatusBadRequest, Body: []byte("Failed reading body" + err.Error())})
 		}
-		res, err := d.kongMeshClient.GetServiceInsights(ctx)
+		res, err := d.kongMeshClient.GetServiceInsights(ctx, sReq.Mesh)
 		if err != nil {
 			return err
 		}
 		response := ServicesResponse{Services: []Service{}}
 		for _, r := range res {
-			if r.Mesh == sReq.Mesh {
-				response.Services = append(response.Services, Service{Name: r.Name, Status: r.Status, Online: r.Dataplanes.Online, Offline: r.Dataplanes.Offline, Total: r.Dataplanes.Total})
-			}
+			response.Services = append(response.Services, Service{Name: r.Name, Status: r.Status, Online: r.Dataplanes.Online, Offline: r.Dataplanes.Offline, Total: r.Dataplanes.Total})
 		}
 		b, err := json.Marshal(response)
 		if err != nil {
