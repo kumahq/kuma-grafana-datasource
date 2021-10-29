@@ -3,13 +3,14 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/httpclient"
 	"net/http"
 )
 
 type Client interface {
 	Hello(ctx context.Context) (*HelloResponse, error)
-	GetServiceInsights(ctx context.Context) ([]ServiceInsight, error)
+	GetServiceInsights(ctx context.Context, mesh string) ([]ServiceInsight, error)
 	GetZones(ctx context.Context) ([]Zone, error)
 	GetMeshes(ctx context.Context) ([]Mesh, error)
 }
@@ -65,9 +66,9 @@ func (c *client) Hello(ctx context.Context) (*HelloResponse, error) {
 	return &res, nil
 }
 
-func (c *client) GetServiceInsights(ctx context.Context) ([]ServiceInsight, error) {
+func (c *client) GetServiceInsights(ctx context.Context, mesh string) ([]ServiceInsight, error) {
 	res := ServiceInsightResponse{}
-	if err := c.get(ctx, "/service-insights", &res); err != nil {
+	if err := c.get(ctx, fmt.Sprintf("/meshes/%s/service-insights", mesh), &res); err != nil {
 		return nil, err
 	}
 	// TODO pagination

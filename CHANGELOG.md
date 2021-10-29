@@ -4,6 +4,7 @@
 
 - Add services query type
 - Improve forms for nicer display
+- Use api endpoints with meshes instead of filtering on the backend
 
 ## 0.0.3
 
