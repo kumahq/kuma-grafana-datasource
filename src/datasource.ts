@@ -156,7 +156,7 @@ export class DataSource extends DataSourceWithBackend<KumaQuery, KumaDataSourceO
     // Add a bunch
     let selector = `mesh="${mesh}",envoy_cluster_name!~"^localhost_[0-9]+$",envoy_cluster_name!="ads_cluster",envoy_cluster_name!="kuma_envoy_admin"`;
     if (zone) {
-      selector = `${selector},zone="${zone}"`;
+      selector = `${selector},kuma_io_zone=~"${zone}"`;
     }
     try {
       let stats = await this.postResource('services', { mesh: mesh }).then((r) => {
