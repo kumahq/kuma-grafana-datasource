@@ -27,8 +27,8 @@ var (
 	_ instancemgmt.InstanceDisposer = (*KumaDatasource)(nil)
 )
 
-// NewSampleDatasource creates a new datasource instance.
-func NewSampleDatasource(instanceSettings backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
+// NewKumaDatasource creates a new datasource instance.
+func NewKumaDatasource(instanceSettings backend.DataSourceInstanceSettings) (instancemgmt.Instance, error) {
 	cl, err := client.NewClient(instanceSettings.URL, instanceSettings.DecryptedSecureJSONData)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ type KumaDatasource struct {
 
 // Dispose here tells plugin SDK that plugin wants to clean up resources when a new instance
 // created. As soon as datasource settings change detected by SDK old datasource instance will
-// be disposed and a new one will be created using NewSampleDatasource factory function.
+// be disposed and a new one will be created using NewKumaDatasource factory function.
 func (d *KumaDatasource) Dispose() {
 	// Clean up datasource instance resources.
 }
@@ -58,6 +58,7 @@ const (
 	MeshGraphQueryType KongMeshQueryType = "mesh-graph"
 	MeshesQueryType    KongMeshQueryType = "meshes"
 	ZonesQueryType     KongMeshQueryType = "zones"
+	ServicesQueryType  KongMeshQueryType = "services"
 )
 
 type KumaQueryModel struct {
@@ -95,20 +96,39 @@ func (d *KumaDatasource) query(ctx context.Context, pCtx backend.PluginContext, 
 		return backend.DataResponse{Error: err}
 	}
 	switch qm.QueryType {
+	case ServicesQueryType:
+		r, err := d.kongMeshClient.GetServiceInsights(ctx)
+		if err != nil {
+			return backend.DataResponse{Error: err}
+		}
+		services := data.NewFrame("services")
+		services.SetMeta(&data.FrameMeta{PreferredVisualization: data.VisTypeTable})
+		services.Fields = append(services.Fields,
+			data.NewField("title", nil, []string{}).SetConfig(&data.FieldConfig{DisplayName: "Name"}),
+			data.NewField("status", nil, []string{}).SetConfig(&data.FieldConfig{DisplayName: "Status"}),
+			data.NewField("online", nil, []uint32{}).SetConfig(&data.FieldConfig{DisplayName: "Online"}),
+			data.NewField("offline", nil, []uint32{}).SetConfig(&data.FieldConfig{DisplayName: "Offline"}),
+			data.NewField("total", nil, []uint32{}).SetConfig(&data.FieldConfig{DisplayName: "Total"}),
+		)
+		for _, srv := range r {
+			if srv.Mesh == qm.Mesh {
+				services.AppendRow(srv.Name, srv.Status, uint32(srv.Dataplanes.Online), uint32(srv.Dataplanes.Offline), uint32(srv.Dataplanes.Total))
+			}
+		}
+		return backend.DataResponse{Frames: data.Frames{services}}
 	case MeshesQueryType:
 		r, err := d.kongMeshClient.GetMeshes(ctx)
 		if err != nil {
 			return backend.DataResponse{Error: err}
 		}
-		var names []string
-		for _, m := range r {
-			names = append(names, m.Name)
-		}
 		meshes := data.NewFrame("meshes")
 		meshes.SetMeta(&data.FrameMeta{PreferredVisualization: data.VisTypeTable})
-		meshes.Fields = append(meshes.Fields, data.NewField("title", nil, names).SetConfig(&data.FieldConfig{
+		meshes.Fields = append(meshes.Fields, data.NewField("title", nil, []string{}).SetConfig(&data.FieldConfig{
 			DisplayName: "Name",
 		}))
+		for _, m := range r {
+			meshes.AppendRow(m.Name)
+		}
 		return backend.DataResponse{Frames: data.Frames{meshes}}
 	case ZonesQueryType:
 		r, err := d.kongMeshClient.GetZones(ctx)
@@ -162,7 +182,7 @@ func (d *KumaDatasource) CallResource(ctx context.Context, req *backend.CallReso
 		if err != nil {
 			return err
 		}
-		meshes := []string{}
+		var meshes []string
 		for _, z := range meshesObj {
 			meshes = append(meshes, z.Name)
 		}
@@ -170,7 +190,7 @@ func (d *KumaDatasource) CallResource(ctx context.Context, req *backend.CallReso
 		if err != nil {
 			return err
 		}
-		zones := []string{}
+		var zones []string
 		for _, z := range zonesObj {
 			zones = append(zones, z.Name)
 		}
@@ -191,7 +211,9 @@ func (d *KumaDatasource) CallResource(ctx context.Context, req *backend.CallReso
 		}
 		response := ServicesResponse{Services: []Service{}}
 		for _, r := range res {
-			response.Services = append(response.Services, Service{Name: r.Name, Status: r.Status, Online: r.Dataplanes.Online, Offline: r.Dataplanes.Offline, Total: r.Dataplanes.Total})
+			if r.Mesh == sReq.Mesh {
+				response.Services = append(response.Services, Service{Name: r.Name, Status: r.Status, Online: r.Dataplanes.Online, Offline: r.Dataplanes.Offline, Total: r.Dataplanes.Total})
+			}
 		}
 		b, err := json.Marshal(response)
 		if err != nil {

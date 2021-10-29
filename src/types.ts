@@ -1,7 +1,6 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
 export interface KumaQuery extends DataQuery {
-  type: string;
   mesh: string;
   zone?: string;
 }
@@ -9,11 +8,11 @@ export interface KumaQuery extends DataQuery {
 export const MeshGraphQType = 'mesh-graph';
 export const MeshesQType = 'meshes';
 export const ZonesQType = 'zones';
-export const queryTypes = [MeshGraphQType, ZonesQType, MeshesQType];
+export const ServicesQType = 'services';
+export const queryTypes = [MeshGraphQType, ZonesQType, MeshesQType, ServicesQType];
 
 export const defaultQuery: Partial<KumaQuery> = {
-  queryType: MeshGraphQType,
-  mesh: 'default',
+  queryType: MeshesQType,
 };
 
 /**

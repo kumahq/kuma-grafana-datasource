@@ -57,7 +57,7 @@ If you use `kumactl install metrics` with a version of kumactl >= 1.3.0 the plug
 
 - Add links for logs and traces.
 - Add possibility to filter services.
-- Add query type for services/dataplane inspection.
+- Add query type for dataplane inspection.
 - Support non HTTP services.
 
 File an issue if you want something :).
