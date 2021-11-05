@@ -1,12 +1,15 @@
+import { max } from 'lodash';
+
 interface Dictionary<T> {
   [key: string]: T;
 }
 
 interface NodeStat {
+  name: string;
   statuses: ReqStatuses;
-  rps: string;
-  latencyp50: string;
-  latencyp99: string;
+  rps: number;
+  latencyp50: number;
+  latencyp99: number;
   edges: Dictionary<EdgeStat>;
   dpStatus: string;
   dpOnline: number;
@@ -53,66 +56,92 @@ class ReqStatuses {
 }
 
 interface EdgeStat {
+  src: string;
   dest: string;
   statuses: ReqStatuses;
-  rps: string;
-  latencyp50: string;
-  latencyp99: string;
-}
-
-function emptyEdge(dest: string): EdgeStat {
-  return {
-    dest: dest,
-    latencyp50: 'N/A',
-    latencyp99: 'N/A',
-    rps: '0',
-    statuses: new ReqStatuses({ s2xx: 0, s3xx: 0, s4xx: 0, s5xx: 0 }),
-  };
+  rps: number;
+  latencyp50: number;
+  latencyp99: number;
 }
 
 export class Stats {
   nodeStats: Dictionary<NodeStat>;
   // A set that indicates that this service receives data.
   sends: Dictionary<boolean>;
+  private rollUp?: RegExp;
 
-  constructor() {
+  constructor(rollUp?: RegExp) {
     this.nodeStats = {};
     this.sends = {};
+    this.rollUp = rollUp;
   }
 
   addNode(input: { name: string; online: number; offline: number; total: number; status: string }) {
-    this.nodeStats[input.name] = {
-      dpStatus: input.status,
-      dpOnline: input.online,
-      dpOffline: input.offline,
-      dpTotal: input.total,
-      statuses: new ReqStatuses({ s2xx: 0, s3xx: 0, s4xx: 0, s5xx: 0 }),
-      rps: '0',
-      latencyp50: 'N/A',
-      latencyp99: 'N/A',
-      edges: {},
-    };
+    let name = this.getName(input.name);
+    if (name) {
+      this.nodeStats[name] = {
+        name: name,
+        dpStatus: input.status,
+        dpOnline: input.online,
+        dpOffline: input.offline,
+        dpTotal: input.total,
+        statuses: new ReqStatuses({ s2xx: 0, s3xx: 0, s4xx: 0, s5xx: 0 }),
+        rps: 0,
+        latencyp50: 0,
+        latencyp99: 0,
+        edges: {},
+      };
+    }
+  }
+
+  private getName(name: string): string | undefined {
+    if (!this.rollUp) {
+      return name;
+    }
+    let r = name.match(this.rollUp);
+    if (r == null) {
+      return;
+    }
+    if (r.length >= 2) {
+      return r[1];
+    }
+    return name;
+  }
+
+  private getNodeStats(name: string): NodeStat | undefined {
+    let n = this.getName(name);
+    if (n) {
+      return this.nodeStats[n];
+    }
+    return;
   }
 
   populateEdge(data: any, fn: (labels: any, value: string, elt: EdgeStat) => void) {
     for (let { metric, value } of data) {
-      const src = metric['kuma_io_service'];
-      const dest = metric['envoy_cluster_name'];
-      if (this.nodeStats[dest] && this.nodeStats[src]) {
-        this.sends[src] = true;
-        if (!this.nodeStats[dest].edges[src]) {
-          this.nodeStats[dest].edges[src] = emptyEdge(src);
+      const src = this.getNodeStats(metric['kuma_io_service']);
+      const dest = this.getNodeStats(metric['envoy_cluster_name']);
+      if (dest && src) {
+        this.sends[src.name] = true;
+        if (!dest.edges[src.name]) {
+          dest.edges[src.name] = {
+            src: src.name,
+            dest: dest.name,
+            latencyp50: 0,
+            latencyp99: 0,
+            rps: 0,
+            statuses: new ReqStatuses({ s2xx: 0, s3xx: 0, s4xx: 0, s5xx: 0 }),
+          };
         }
-        fn(metric, value[1], this.nodeStats[dest].edges[src]);
+        fn(metric, value[1], dest.edges[src.name]);
       }
     }
   }
 
   populateNode(data: any, fn: (labels: any, value: string, elt: NodeStat) => void) {
     for (let { metric, value } of data) {
-      const srv = metric['envoy_cluster_name'];
-      if (this.nodeStats[srv]) {
-        fn(metric, value[1], this.nodeStats[srv]);
+      const srv = this.getNodeStats(metric['envoy_cluster_name']);
+      if (srv) {
+        fn(metric, value[1], srv);
       }
     }
   }
@@ -121,38 +150,38 @@ export class Stats {
 export function processEdgePromQueries(stats: Stats, statusRes: any, rpsRes: any, lat50Res: any, lat99Res: any) {
   stats.populateEdge(statusRes, aggregateStatus);
   stats.populateEdge(rpsRes, (labels: any, value: string, elt: EdgeStat) => {
-    elt.rps = value;
+    elt.rps += Number(value);
   });
   stats.populateEdge(lat50Res, (labels: any, value: string, elt: EdgeStat) => {
-    elt.latencyp50 = value;
+    elt.latencyp50 = max([Number(value), elt.latencyp50]) || 0;
   });
   stats.populateEdge(lat99Res, (labels: any, value: string, elt: EdgeStat) => {
-    elt.latencyp99 = value;
+    elt.latencyp99 = max([Number(value), elt.latencyp99]) || 0;
   });
 }
 
 export function processServicePromQueries(stats: Stats, statusRes: any, rpsRes: any, lat50Res: any, lat99Res: any) {
   stats.populateNode(statusRes, aggregateStatus);
   stats.populateNode(rpsRes, (labels: any, value: string, elt: NodeStat) => {
-    elt.rps = value;
+    elt.rps += Number(value);
   });
   stats.populateNode(lat50Res, (labels: any, value: string, elt: NodeStat) => {
-    elt.latencyp50 = value;
+    elt.latencyp50 = max([Number(value), elt.latencyp50]) || 0;
   });
   stats.populateNode(lat99Res, (labels: any, value: string, elt: NodeStat) => {
-    elt.latencyp99 = value;
+    elt.latencyp99 = max([Number(value), elt.latencyp99]) || 0;
   });
 }
 
 function aggregateStatus(labels: any, value: string, elt: EdgeStat | NodeStat) {
   const s = labels['envoy_response_code_class'];
   if (s === '5') {
-    elt.statuses.s5xx = Number(value);
+    elt.statuses.s5xx += Number(value);
   } else if (s === '4') {
-    elt.statuses.s4xx = Number(value);
+    elt.statuses.s4xx += Number(value);
   } else if (s === '3') {
-    elt.statuses.s3xx = Number(value);
+    elt.statuses.s3xx += Number(value);
   } else if (s === '2') {
-    elt.statuses.s2xx = Number(value);
+    elt.statuses.s2xx += Number(value);
   }
 }
