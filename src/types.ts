@@ -3,6 +3,7 @@ import { DataQuery, DataSourceJsonData } from '@grafana/data';
 export interface KumaQuery extends DataQuery {
   mesh: string;
   zone?: string;
+  rollupRegEx?: string;
 }
 
 export const MeshGraphQType = 'mesh-graph';
@@ -13,6 +14,7 @@ export const queryTypes = [MeshGraphQType, ZonesQType, MeshesQType, ServicesQTyp
 
 export const defaultQuery: Partial<KumaQuery> = {
   queryType: MeshesQType,
+  rollupRegEx: '(.*)(_svc(_[0-9]+)?)',
 };
 
 /**

@@ -1,5 +1,10 @@
 # Changelog
 
+## Next
+
+- Add support for rolling up kuma services inside the same node in the nodeGraph.
+  This feature is especially useful when services have multiple inbounds and the default will always rollup k8s services together.
+
 ## 0.0.4
 
 - Add services query type

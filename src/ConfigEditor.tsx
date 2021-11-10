@@ -40,7 +40,7 @@ export function ConfigEditor(props: Props) {
       <FieldSet label="Secondary datasource">
         <InlineField
           label="Prometheus datasource"
-          tooltip="The prometheus datasource to extract stats from (this datasource will proxy some requests throuhg this datasource)"
+          tooltip="The prometheus datasource to extract stats from (this datasource will proxy some requests through this datasource)"
         >
           <Select
             options={allDatasources}

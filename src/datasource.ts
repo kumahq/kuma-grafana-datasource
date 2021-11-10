@@ -153,6 +153,7 @@ export class DataSource extends DataSourceWithBackend<KumaQuery, KumaDataSourceO
     }
     const mesh = getTemplateSrv().replace(request.targets[0].mesh, request.scopedVars);
     const zone = getTemplateSrv().replace(request.targets[0].zone, request.scopedVars);
+    const rollup = getTemplateSrv().replace(request.targets[0].rollupRegEx, request.scopedVars);
     // Add a bunch
     let selector = `mesh="${mesh}",envoy_cluster_name!~"^localhost_[0-9]+$",envoy_cluster_name!="ads_cluster",envoy_cluster_name!="kuma_envoy_admin"`;
     if (zone) {
@@ -160,7 +161,7 @@ export class DataSource extends DataSourceWithBackend<KumaQuery, KumaDataSourceO
     }
     try {
       let stats = await this.postResource('services', { mesh: mesh }).then((r) => {
-        const out = new Stats();
+        const out = new Stats(new RegExp(rollup));
         for (let s of r.services) {
           out.addNode(s);
         }

@@ -1,7 +1,7 @@
 import { defaults, map } from 'lodash';
 
-import React from 'react';
-import { AsyncSelect, InlineField, InlineFieldRow, Select } from '@grafana/ui';
+import React, { ChangeEvent } from 'react';
+import { AsyncSelect, InlineField, InlineFieldRow, Input, Select } from '@grafana/ui';
 
 import { QueryEditorProps, SelectableValue } from '@grafana/data';
 
@@ -64,6 +64,19 @@ export function QueryEditor(props: Props) {
           onChange={(entry: SelectableValue<string>) => {
             props.onChange({ ...query, zone: entry.value || '' });
           }}
+        />
+      </InlineField>,
+      <InlineField
+        key="rollupRegexp"
+        label="rollupRegexp"
+        tooltip={`a regular expression to rollup all services of the same name, all matching services will be rolled up in the first regular expression group. For example the default value: ${defaultQuery.rollupRegEx} rolls all <service>_<namespace>_svc_<port> into <service>_<namespace>`}
+      >
+        <Input
+          onChange={(event: ChangeEvent<HTMLInputElement>) => {
+            props.onChange({ ...props.query, rollupRegEx: event.target.value });
+          }}
+          css=""
+          value={props.query.rollupRegEx || ''}
         />
       </InlineField>
     );
