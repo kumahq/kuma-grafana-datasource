@@ -17,7 +17,6 @@
     "@grafana/toolkit": "8.2.4",
     "@grafana/runtime": "8.2.4",
     "@grafana/ui": "8.2.4",
-    "@types/lodash": "latest",
     "react-use": "latest"
   },
   "resolutions": {
