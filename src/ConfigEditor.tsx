@@ -30,7 +30,6 @@ export function ConfigEditor(props: Props) {
             onChange={(event: ChangeEvent<HTMLInputElement>) => {
               props.onOptionsChange({ ...props.options, url: event.target.value });
             }}
-            css=""
             value={options.url || ''}
             placeholder="url to your service"
             required={true}

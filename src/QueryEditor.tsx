@@ -75,7 +75,6 @@ export function QueryEditor(props: Props) {
           onChange={(event: ChangeEvent<HTMLInputElement>) => {
             props.onChange({ ...props.query, rollupRegEx: event.target.value });
           }}
-          css=""
           value={props.query.rollupRegEx || ''}
         />
       </InlineField>
