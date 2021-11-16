@@ -13,7 +13,7 @@
   "author": "Charly Molter",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@grafana/data": "8.0.2",
+    "@grafana/data": "8.2.3",
     "@grafana/toolkit": "8.0.2",
     "@grafana/runtime": "8.0.2",
     "@grafana/ui": "8.0.2",
