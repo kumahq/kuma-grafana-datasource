@@ -2,4 +2,4 @@ module github.com/kumahq/kuma-grafana-datasource
 
 go 1.16
 
-require github.com/grafana/grafana-plugin-sdk-go v0.116.0
+require github.com/grafana/grafana-plugin-sdk-go v0.117.0
