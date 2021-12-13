@@ -1199,6 +1199,27 @@
     uplot "1.6.16"
     xss "1.0.6"
 
+"@grafana/data@8.3.2":
+  version "8.3.2"
+  resolved "https://registry.yarnpkg.com/@grafana/data/-/data-8.3.2.tgz#97fb215ed025a30f5581579e16ef4219ac390cf2"
+  integrity sha512-Onn/Oh972HwbiduqBUVP1AnL3guyvim3t5k7kVINm0eArNE+3Zs8xeeu5W5RZNESrzQmxLTEBjIo+cUJmmRhtQ==
+  dependencies:
+    "@braintree/sanitize-url" "5.0.2"
+    "@grafana/schema" "8.3.2"
+    "@types/d3-interpolate" "^1.4.0"
+    d3-interpolate "1.4.0"
+    date-fns "2.21.3"
+    eventemitter3 "4.0.7"
+    lodash "4.17.21"
+    marked "4.0.0"
+    moment "2.29.1"
+    moment-timezone "0.5.33"
+    ol "6.7.0"
+    papaparse "5.3.0"
+    rxjs "7.3.0"
+    uplot "1.6.16"
+    xss "1.0.6"
+
 "@grafana/e2e-selectors@8.2.4":
   version "8.2.4"
   resolved "https://registry.yarnpkg.com/@grafana/e2e-selectors/-/e2e-selectors-8.2.4.tgz#9d20b030cfb3751866564207714d362129e9773b"
@@ -1274,6 +1295,11 @@
   version "8.3.0"
   resolved "https://registry.yarnpkg.com/@grafana/schema/-/schema-8.3.0.tgz#aa77f4e953c985735acde2ad8e8bf8183519fe92"
   integrity sha512-JWM1/TFfqBlNgqC5nFKydGcZkUfvHZBpmd2gPPvuzLTggZ/sC4WMGqD/vhBcFhzZd2n7t0JFUTMAzqTTPDZPPg==
+
+"@grafana/schema@8.3.2":
+  version "8.3.2"
+  resolved "https://registry.yarnpkg.com/@grafana/schema/-/schema-8.3.2.tgz#30a72804b405b3b3f50f835ae597c9a2d43cd6b1"
+  integrity sha512-gfdTsXK+VVnoVZAajGOzsl5wymUsuPURW80CLQdAWzhbHbf4kDB3WrGeHODqRWpTmI56GDqRZhgoFHGesW1ksQ==
 
 "@grafana/slate-react@0.22.10-grafana":
   version "0.22.10-grafana"
