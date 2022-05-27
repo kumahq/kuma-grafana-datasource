@@ -36,6 +36,23 @@ Once this is done you can go in `explore` and pick the kuma-datasource with the 
 
 Add to the datasource configuration:
 
+#### kuma >= 1.7.0
+
+```yaml
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server.mesh-observability
+      - name: Kuma
+        type: kumahq-kuma-datasource
+        url: http://kuma-control-plane.kuma-system:5681
+        jsonData:
+          prometheusDataSourceId: "1"
+```
+
+#### kuma < 1.7.0
+
 ```yaml
     datasources:
       - name: Prometheus
@@ -51,7 +68,13 @@ Add to the datasource configuration:
 
 ### With `kumactl`
 
-If you use `kumactl install metrics` with a version of kumactl >= 1.3.0 the plugin will be setup automatically.
+#### kumactl >= 1.7.0
+
+If you use `kumactl install observability` with a version of kumactl >= 1.7.0 the plugin will be setup automatically.
+
+#### kumactl 1.3.0-1.6.*
+
+If you use `kumactl install metrics` with a version of kumactl 1.3.0-1.6.* the plugin will be setup automatically.
 
 ## Future features
 

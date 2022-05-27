@@ -16,5 +16,5 @@ kubectl wait -n kuma-test --timeout=30s --for condition=Ready --all pods
 docker run  -p 3000:3000 -d  --network k3d-kuma-demo -e GF_DEFAULT_APP_MODE=development -v /Users/cmolter/code/kuma-datasource/dist:/var/lib/grafana/plugins --name=grafana grafana/grafana:8.2.2
 
 
-echo "grafana is expose on 3000, control-plane of 5681 and prometheus-server on 9090 interrupt to close these port-forward"
+echo "grafana is exposed on port 3000, control-plane on 5681 and prometheus-server on 9090 interrupt to close these port-forward"
 wait
