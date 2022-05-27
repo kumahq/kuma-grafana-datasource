@@ -70,7 +70,7 @@ Add to the datasource configuration:
 
 #### kumactl >= 1.7.0
 
-If you use `kumactl install observability --components grafana,prometheus` with a version of kumactl >= 1.7.0 the plugin will be setup automatically.
+If you use `kumactl install observability` with a version of kumactl >= 1.7.0 the plugin will be setup automatically.
 
 #### kumactl 1.3.0-1.6.*
 
