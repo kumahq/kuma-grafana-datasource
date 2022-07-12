@@ -11,7 +11,7 @@ import {
 import { DataSourceWithBackend, FetchResponse, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
 import { KumaDataSourceOptions, KumaQuery, MeshGraphQType } from './types';
 import { from, Observable } from 'rxjs';
-import { processEdgePromQueries, processServicePromQueries, Stats } from './stats';
+import { processEdgePromQueries, processGatewayPromQueries, processServicePromQueries, Stats } from './stats';
 
 function assembleNodeDf(serviceStats: Stats): DataFrame {
   const df = new MutableDataFrame();
@@ -159,6 +159,10 @@ export class DataSource extends DataSourceWithBackend<KumaQuery, KumaDataSourceO
     if (zone) {
       selector = `${selector},kuma_io_zone=~"${zone}"`;
     }
+    let gatewaySelector = `mesh="${mesh}",kuma_io_mesh_gateway!="",kuma_io_mesh_traffic="true"`;
+    if (zone) {
+      gatewaySelector = `${gatewaySelector},kuma_io_zone=~"${zone}"`;
+    }
     try {
       let stats = await this.postResource('services', { mesh: mesh }).then((r) => {
         const out = new Stats(new RegExp(rollup));
@@ -211,6 +215,28 @@ export class DataSource extends DataSourceWithBackend<KumaQuery, KumaDataSourceO
         ]).then((res) => {
           const [statusRes, rpsRes, lat50Res, lat99Res] = res;
           processServicePromQueries(stats, statusRes, rpsRes, lat50Res, lat99Res);
+        }),
+        // Gateways
+        Promise.all([
+          this.sendPromQuery(
+            `sum by (kuma_io_service, envoy_response_code_class) (round(increase(envoy_http_downstream_rq_xx{${gatewaySelector}}[${interval}m]))) != 0`,
+            request.startTime
+          ),
+          this.sendPromQuery(
+            `sum by (kuma_io_service) (rate(envoy_http_downstream_rq_total{${gatewaySelector}}[${interval}m])) != 0`,
+            request.startTime
+          ),
+          this.sendPromQuery(
+            `ceil(histogram_quantile(0.5, sum by (kuma_io_service, le) (rate(envoy_http_downstream_rq_time_bucket{${gatewaySelector}}[${interval}m]))))`,
+            request.startTime
+          ),
+          this.sendPromQuery(
+            `ceil(histogram_quantile(0.99, sum by (kuma_io_service, le) (rate(envoy_http_downstream_rq_time_bucket{${gatewaySelector}}[${interval}m]))))`,
+            request.startTime
+          ),
+        ]).then((res) => {
+          const [statusRes, rpsRes, lat50Res, lat99Res] = res;
+          processGatewayPromQueries(stats, statusRes, rpsRes, lat50Res, lat99Res);
         }),
       ]);
 
