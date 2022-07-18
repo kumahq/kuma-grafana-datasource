@@ -66,7 +66,7 @@ interface EdgeStat {
 
 export class Stats {
   nodeStats: Dictionary<NodeStat>;
-  // A set that indicates that this service receives data.
+  // A set of services that send data
   sends: Dictionary<boolean>;
   private rollUp?: RegExp;
 
@@ -145,32 +145,36 @@ export class Stats {
       }
     }
   }
+
+  populateGatewayNode(data: any, fn: (labels: any, value: string, elt: NodeStat) => void) {
+    for (let { metric, value } of data) {
+      const srv = this.getNodeStats(metric['kuma_io_service']);
+      if (srv) {
+        fn(metric, value[1], srv);
+      }
+    }
+  }
 }
 
 export function processEdgePromQueries(stats: Stats, statusRes: any, rpsRes: any, lat50Res: any, lat99Res: any) {
   stats.populateEdge(statusRes, aggregateStatus);
-  stats.populateEdge(rpsRes, (labels: any, value: string, elt: EdgeStat) => {
-    elt.rps += Number(value);
-  });
-  stats.populateEdge(lat50Res, (labels: any, value: string, elt: EdgeStat) => {
-    elt.latencyp50 = max([Number(value), elt.latencyp50]) || 0;
-  });
-  stats.populateEdge(lat99Res, (labels: any, value: string, elt: EdgeStat) => {
-    elt.latencyp99 = max([Number(value), elt.latencyp99]) || 0;
-  });
+  stats.populateEdge(rpsRes, addRequests);
+  stats.populateEdge(lat50Res, addLatencyp50);
+  stats.populateEdge(lat99Res, addLatencyp99);
 }
 
 export function processServicePromQueries(stats: Stats, statusRes: any, rpsRes: any, lat50Res: any, lat99Res: any) {
   stats.populateNode(statusRes, aggregateStatus);
-  stats.populateNode(rpsRes, (labels: any, value: string, elt: NodeStat) => {
-    elt.rps += Number(value);
-  });
-  stats.populateNode(lat50Res, (labels: any, value: string, elt: NodeStat) => {
-    elt.latencyp50 = max([Number(value), elt.latencyp50]) || 0;
-  });
-  stats.populateNode(lat99Res, (labels: any, value: string, elt: NodeStat) => {
-    elt.latencyp99 = max([Number(value), elt.latencyp99]) || 0;
-  });
+  stats.populateNode(rpsRes, addRequests);
+  stats.populateNode(lat50Res, addLatencyp50);
+  stats.populateNode(lat99Res, addLatencyp99);
+}
+
+export function processGatewayPromQueries(stats: Stats, statusRes: any, rpsRes: any, lat50Res: any, lat99Res: any) {
+  stats.populateGatewayNode(statusRes, aggregateStatus);
+  stats.populateGatewayNode(rpsRes, addRequests);
+  stats.populateGatewayNode(lat50Res, addLatencyp50);
+  stats.populateGatewayNode(lat99Res, addLatencyp99);
 }
 
 function aggregateStatus(labels: any, value: string, elt: EdgeStat | NodeStat) {
@@ -184,4 +188,16 @@ function aggregateStatus(labels: any, value: string, elt: EdgeStat | NodeStat) {
   } else if (s === '2') {
     elt.statuses.s2xx += Number(value);
   }
+}
+
+function addRequests(labels: unknown, value: string, elt: EdgeStat | NodeStat) {
+  elt.rps += Number(value);
+}
+
+function addLatencyp50(labels: unknown, value: string, elt: EdgeStat | NodeStat) {
+  elt.latencyp50 = max([Number(value), elt.latencyp50]) || 0;
+}
+
+function addLatencyp99(labels: unknown, value: string, elt: EdgeStat | NodeStat) {
+  elt.latencyp99 = max([Number(value), elt.latencyp99]) || 0;
 }

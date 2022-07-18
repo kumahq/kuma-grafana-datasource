@@ -1,4 +1,4 @@
-import { processEdgePromQueries, processServicePromQueries, Stats } from 'stats';
+import { processEdgePromQueries, processGatewayPromQueries, processServicePromQueries, Stats } from 'stats';
 
 test('processEdgePromQueries', () => {
   const stats = new Stats();
@@ -117,6 +117,35 @@ test('processEdgePromQueries', () => {
   expect(stats.nodeStats['srv2'].edges).toEqual({});
   expect(stats.nodeStats['srv3'].edges['srv2']).toBeTruthy();
   expect(stats.nodeStats['srv4'].edges).toEqual({});
+});
+
+test('processGatewayPromQueries', () => {
+  return;
+  const stats = new Stats();
+  const srvs = [
+    { name: 'gateway1', status: 'online', online: 2, offline: 0, total: 2 },
+    { name: 'srv1', status: 'online', online: 1, offline: 0, total: 1 },
+    { name: 'srv2', status: 'online', online: 1, offline: 0, total: 1 },
+  ];
+  for (const srv of srvs) {
+    stats.addNode(srv);
+  }
+  const status = [
+    {
+      metric: { kuma_io_service: 'gateway1', envoy_response_code_class: '2' },
+      value: [1631800504.203, '245'],
+    },
+  ];
+  const rps = [{ metric: { kuma_io_service: 'gateway1' }, value: [1631800504.203, '0.5777777777777777'] }];
+  const lat50 = [
+    { metric: { kuma_io_service: 'gateway1' }, value: [1631800504.203, '3'] },
+    { metric: { kuma_io_service: 'gateway2' }, value: [1631800504.203, '4'] },
+    { metric: { kuma_io_service: 'gateway1' }, value: [1631800504.203, 'NaN'] },
+  ];
+  const lat99 = [{ metric: { kuma_io_service: 'gateway1' }, value: [1631800504.203, '4'] }];
+  processGatewayPromQueries(stats, status, rps, lat50, lat99);
+  expect(stats.nodeStats['gateway1'].statuses).toEqual({ s2xx: 245, s3xx: 0, s4xx: 0, s5xx: 0 });
+  expect(stats.nodeStats['gateway1'].latencyp50).toEqual(3);
 });
 
 test('with rollup', () => {
