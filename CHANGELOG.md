@@ -4,6 +4,10 @@
 
 - Do your work :)
 
+## 0.1.1
+
+- Handle pagination when requesting for `ServiceInsigt`s
+
 ## 0.1.0
 
 - Add support for rolling up kuma services inside the same node in the nodeGraph.
