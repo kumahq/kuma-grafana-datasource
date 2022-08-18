@@ -69,8 +69,8 @@ func (c *client) Hello(ctx context.Context) (*HelloResponse, error) {
 
 func (c *client) GetServiceInsights(ctx context.Context, mesh string) ([]ServiceInsight, error) {
 	var insights []ServiceInsight
-	path := fmt.Sprintf("%s/meshes/%s/service-insights", c.url, mesh)
-	next := &path
+	url := fmt.Sprintf("%s/meshes/%s/service-insights", c.url, mesh)
+	next := &url
 
 	for {
 		if next == nil {
