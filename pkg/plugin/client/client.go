@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/grafana/grafana-plugin-sdk-go/backend/httpclient"
 	"net/http"
+
+	"github.com/grafana/grafana-plugin-sdk-go/backend/httpclient"
 )
 
 type Client interface {
@@ -21,16 +22,16 @@ type client struct {
 }
 
 func (c *client) GetZones(ctx context.Context) ([]Zone, error) {
-	res := ZoneListResponse{}
-	if err := c.get(ctx, "/zones", &res); err != nil {
+	var res = ZoneListResponse{}
+	if err := c.getWithClientURLPrefix(ctx, "/zones", &res); err != nil {
 		return nil, err
 	}
 	return res.Items, nil
 }
 
 func (c *client) GetMeshes(ctx context.Context) ([]Mesh, error) {
-	res := MeshListResponse{}
-	if err := c.get(ctx, "/meshes", &res); err != nil {
+	var res = MeshListResponse{}
+	if err := c.getWithClientURLPrefix(ctx, "/meshes", &res); err != nil {
 		return nil, err
 	}
 	return res.Items, nil
@@ -59,36 +60,53 @@ func NewClient(url string, opts map[string]string) (Client, error) {
 }
 
 func (c *client) Hello(ctx context.Context) (*HelloResponse, error) {
-	res := HelloResponse{}
-	if err := c.get(ctx, "/", &res); err != nil {
+	var res = HelloResponse{}
+	if err := c.getWithClientURLPrefix(ctx, "/", &res); err != nil {
 		return nil, err
 	}
 	return &res, nil
 }
 
 func (c *client) GetServiceInsights(ctx context.Context, mesh string) ([]ServiceInsight, error) {
-	res := ServiceInsightResponse{}
-	if err := c.get(ctx, fmt.Sprintf("/meshes/%s/service-insights", mesh), &res); err != nil {
-		return nil, err
+	var insights []ServiceInsight
+	path := fmt.Sprintf("%s/meshes/%s/service-insights", c.url, mesh)
+	next := &path
+
+	for {
+		if next == nil {
+			break
+		}
+
+		var res = ServiceInsightResponse{}
+		if err := c.get(ctx, *next, &res); err != nil {
+			return nil, err
+		}
+
+		next = res.Next
+		insights = append(insights, res.Items...)
 	}
-	// TODO pagination
-	return res.Items, nil
+
+	return insights, nil
 }
 
-func (c *client) get(ctx context.Context, path string, out interface{}) error {
-	r, err := http.NewRequest("GET", c.url+path, nil)
+func (c *client) get(ctx context.Context, url string, out interface{}) error {
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return err
 	}
-	r.WithContext(ctx)
-	res, err := c.client.Do(r)
+
+	res, err := c.client.Do(req.WithContext(ctx))
 	if err != nil {
 		return err
 	}
-	d := json.NewDecoder(res.Body)
-	err = d.Decode(&out)
-	if err != nil {
+
+	if err := json.NewDecoder(res.Body).Decode(&out); err != nil {
 		return err
 	}
+
 	return nil
+}
+
+func (c *client) getWithClientURLPrefix(ctx context.Context, path string, out interface{}) error {
+	return c.get(ctx, c.url+path, out)
 }
