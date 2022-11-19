@@ -13,11 +13,11 @@ export function ConfigEditor(props: Props) {
   const allDatasources = [];
   let curDatasource;
   for (let v of all || []) {
-    if (!v.id) {
+    if (!v.uid) {
       continue;
     }
-    const elt = { label: v.name, value: v.id.toString(), text: v.name };
-    if (v.id.toString() === props.options.jsonData.prometheusDataSourceId) {
+    const elt = { label: v.name, value: v.uid, text: v.name };
+    if (v.uid === props.options.jsonData.prometheusDataSourceUid) {
       curDatasource = elt;
     }
     allDatasources.push(elt);
@@ -46,7 +46,7 @@ export function ConfigEditor(props: Props) {
             value={curDatasource}
             onChange={(entry: SelectableValue<string>) => {
               const { onOptionsChange, options } = props;
-              onOptionsChange({ ...options, jsonData: { prometheusDataSourceId: entry.value } });
+              onOptionsChange({ ...options, jsonData: { prometheusDataSourceUid: entry.value } });
             }}
           />
         </InlineField>
