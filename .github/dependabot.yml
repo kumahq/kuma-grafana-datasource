@@ -1,5 +1,11 @@
 version: 2
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
@@ -10,5 +16,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      @grafana:
+          patterns:
+            - "@grafana/*"
     labels:
       - "dependencies"
