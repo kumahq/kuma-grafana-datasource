@@ -8,10 +8,11 @@ import {
   LoadingState,
   MutableDataFrame,
 } from '@grafana/data';
-import { DataSourceWithBackend, FetchResponse, getBackendSrv, getTemplateSrv } from '@grafana/runtime';
-import { KumaDataSourceOptions, KumaQuery, MeshGraphQType } from './types';
+import { DataSourceWithBackend, getTemplateSrv, toDataQueryError } from '@grafana/runtime';
+import { PrometheusDatasource } from 'prometheus/datasource';
 import { from, Observable } from 'rxjs';
 import { processEdgePromQueries, processGatewayPromQueries, processServicePromQueries, Stats } from './stats';
+import { KumaDataSourceOptions, KumaQuery, MeshGraphQType } from './types';
 
 function assembleNodeDf(serviceStats: Stats): DataFrame {
   const df = new MutableDataFrame();
@@ -131,11 +132,11 @@ function assembleEdgeDf(serviceStats: Stats): DataFrame {
 }
 
 export class DataSource extends DataSourceWithBackend<KumaQuery, KumaDataSourceOptions> {
-  private prometheusDs: string | undefined;
+  private prometheusDs: PrometheusDatasource;
 
   constructor(instanceSettings: DataSourceInstanceSettings<KumaDataSourceOptions>) {
     super(instanceSettings);
-    this.prometheusDs = instanceSettings.jsonData.prometheusDataSourceId;
+    this.prometheusDs = new PrometheusDatasource(instanceSettings.jsonData.prometheusDataSourceUid);
   }
 
   query(request: DataQueryRequest<KumaQuery>): Observable<DataQueryResponse> {
@@ -245,28 +246,11 @@ export class DataSource extends DataSourceWithBackend<KumaQuery, KumaDataSourceO
       return { data: [nodeDf, edgeDf], error: undefined, key: '', state: undefined };
     } catch (e) {
       console.error('failed', e);
-      return { data: [], key: request.requestId, state: LoadingState.Error, error: e };
+      return { data: [], key: request.requestId, state: LoadingState.Error, error: toDataQueryError(e as any) };
     }
   }
 
   private async sendPromQuery(q: string, t: number): Promise<any> {
-    return getBackendSrv()
-      .fetch({
-        url: `/api/datasources/proxy/${this.prometheusDs}/api/v1/query`,
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        data: { query: q, time: t / 1000 },
-      })
-      .toPromise()
-      .then((res: FetchResponse) => {
-        if (res.status === 200) {
-          if (res.data.status === 'success') {
-            return res.data.data.result;
-          }
-          throw new Error(`Prom query failed body: ${res.data}`);
-        } else {
-          throw new Error(`Failed with status ${res.status} body: ${res.data}`);
-        }
-      });
+    return this.prometheusDs.sendInstantQuery({ query: q, time: t / 1000 });
   }
 }

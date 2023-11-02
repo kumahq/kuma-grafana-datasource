@@ -42,13 +42,14 @@ Add to the datasource configuration:
     datasources:
       - name: Prometheus
         type: prometheus
+        uid: prometheus
         access: proxy
         url: http://prometheus-server.mesh-observability
       - name: Kuma
         type: kumahq-kuma-datasource
         url: http://kuma-control-plane.kuma-system:5681
         jsonData:
-          prometheusDataSourceId: "1"
+          prometheusDataSourceUid: "prometheus"
 ```
 
 #### kuma < 1.7.0
@@ -57,13 +58,14 @@ Add to the datasource configuration:
     datasources:
       - name: Prometheus
         type: prometheus
+        uid: prometheus
         access: proxy
         url: http://prometheus-server.kuma-metrics
       - name: Kuma
         type: kumahq-kuma-datasource
         url: http://kuma-control-plane.kuma-system:5681
         jsonData:
-          prometheusDataSourceId: "1"
+          prometheusDataSourceUid: "prometheus"
 ```
 
 ### With `kumactl`
