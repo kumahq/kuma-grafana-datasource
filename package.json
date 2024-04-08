@@ -13,10 +13,10 @@
   "author": "Charly Molter",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@grafana/data": "8.2.5",
-    "@grafana/toolkit": "8.2.4",
-    "@grafana/runtime": "8.2.5",
-    "@grafana/ui": "8.3.0",
+    "@grafana/data": "10.4.1",
+    "@grafana/toolkit": "9.5.18",
+    "@grafana/runtime": "10.4.1",
+    "@grafana/ui": "10.4.1",
     "@types/lodash": "latest",
     "react-use": "latest"
   },
